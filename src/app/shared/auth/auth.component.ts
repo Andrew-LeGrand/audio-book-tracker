@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
+import { AuthService } from './auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -8,18 +8,36 @@ import { NgForm } from '@angular/forms';
   styleUrls: ['./auth.component.css'],
 })
 export class AuthComponent implements OnInit {
-  constructor() {}
+  isLoginMode = true;
+
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {}
-
-  isLoginMode = true;
 
   onSwitchAuthMode() {
     this.isLoginMode = !this.isLoginMode;
   }
 
   onAuthFormSubmit(formObj: NgForm) {
-    console.log(formObj.value);
-    formObj.reset;
+    if (!formObj.valid) return;
+
+    const { email, password } = formObj.value
+
+    if (this.isLoginMode) {
+      // Sign In Logic goes here
+    } else {
+      this.authService.signUp(email, password).subscribe(
+        (res) => {
+          console.log('Auth Response Success:', res);
+        },
+        (err) => {
+          console.error('Auth Response Error:', err)
+        }
+      )
+    }
+
+    // Observable logic to handle errors
+
+    formObj.reset();
   }
 }

@@ -3,7 +3,15 @@ import { Injectable } from '@angular/core';
 
 const SIGN_UP_URL = 'http://localhost:3000/api/v1/users/create';
 
-// CREATE THE RESPONSE INTERFACE (STEP 6, CLASS 22)
+export interface AuthResponseData {
+  kind: string;
+  idToken: string;
+  email: string;
+  refreshToken: string;
+  expiresIn: string;
+  localId: string;
+  registered?: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +20,7 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   signUp(email: string, password: string) {
-    this.http.post(SIGN_UP_URL, {
+    return this.http.post<AuthResponseData>(SIGN_UP_URL, {
       email,
       password,
       returnSecureToken: true,
