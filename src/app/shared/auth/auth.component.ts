@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { AuthService } from './auth.service';
+import { AuthResponseData, AuthService } from './auth.service';
+import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-auth',
@@ -9,8 +11,10 @@ import { AuthService } from './auth.service';
 })
 export class AuthComponent implements OnInit {
   isLoginMode = true;
+  errMsg: any = null;
+  authObservable!: Observable<AuthResponseData>;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -24,19 +28,21 @@ export class AuthComponent implements OnInit {
     const { email, password } = formObj.value
 
     if (this.isLoginMode) {
-      // Sign In Logic goes here
+      this.authObservable = this.authService.signIn(email, password)
     } else {
-      this.authService.signUp(email, password).subscribe(
-        (res) => {
-          console.log('Auth Response Success:', res);
-        },
-        (err) => {
-          console.error('Auth Response Error:', err)
-        }
-      )
+      this.authObservable = this.authService.signUp(email, password)
     }
 
     // Observable logic to handle errors
+    this.authObservable.subscribe(res => {
+      console.log(res);
+      this.errMsg = null;
+
+      this.router.navigate(['library']);
+    }), (err: any) => {
+      console.log('Auth Response ERROR:', err)
+      this.errMsg = err.message
+    }
 
     formObj.reset();
   }

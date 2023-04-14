@@ -14,10 +14,9 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
-        <a class="nav-link" aria-current="page">Library</a>
-        <a class="nav-link" routerLink="/auth" routerLinkActive="active"
-          >Login/Sign Up</a
-        >
+        <a class="nav-link" routerLink="/library" routerLinkActive="active" *ngIf="isAuthenticated">Library</a>
+        <a class="nav-link" routerLink="/auth" routerLinkActive="active" *ngIf="!isAuthenticated">Login/Sign Up</a>
+        <a class="nav-link" routerLink="" routerLinkActive="" *ngIf="isAuthenticated">Logout</a>
       </div>
     </div>
   </div>

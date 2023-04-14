@@ -40,5 +40,7 @@
         I need to {{ isLoginMode ? "Sign Up" : "Login" }}
       </button>
     </form>
+
+    <p class="alert alert-danger mt-3" *ngIf="errMsg"></p>
   </div>
 </div>
