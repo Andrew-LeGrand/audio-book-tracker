@@ -17,6 +17,10 @@ export class NavigationComponent implements OnInit {
     })
   }
 
+  onSignOut() {
+    this.authService.signOut();
+  }
+
   ngOnDestroy(): void {
     this.authService.currentUser.unsubscribe();
   }

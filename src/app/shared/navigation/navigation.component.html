@@ -16,7 +16,7 @@
       <div class="navbar-nav">
         <a class="nav-link" routerLink="/library" routerLinkActive="active" *ngIf="isAuthenticated">Library</a>
         <a class="nav-link" routerLink="/auth" routerLinkActive="active" *ngIf="!isAuthenticated">Login/Sign Up</a>
-        <a class="nav-link" routerLink="" routerLinkActive="" *ngIf="isAuthenticated">Logout</a>
+        <a class="nav-link" routerLink="/auth" routerLinkActive="" *ngIf="isAuthenticated" (click)="onSignOut()">Logout</a>
       </div>
     </div>
   </div>
