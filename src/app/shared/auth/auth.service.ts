@@ -16,6 +16,38 @@ export interface AuthResponseData {
   localId: string;
   registered?: boolean;
 }
+// Maybe try replacing the AuthResponseData interface above with these two? -- Wade
+// export interface AuthResponseData {
+//   success: boolean;
+//   payload: {
+//     user: {
+//       id: number;
+//       email: string;
+//       first_name: string;
+//       last_name: string;
+//       name: string;
+//       token: {
+//         id: number;
+//         created_at: string;
+//         expiry: string;
+//         ip: string;
+//         revocation_date: string;
+//         updated_at: string;
+//         user_id: number;
+//         value: string;
+//       };
+//     };
+//   };
+// }
+
+// export interface UserData {
+//   email: string;
+//   id: number;
+//   firstName: string;
+//   lastName: string;
+//   _token: string;
+//   _tokenExpirationDate: string;
+// }
 
 @Injectable({
   providedIn: 'root',
