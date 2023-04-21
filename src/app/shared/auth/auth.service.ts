@@ -8,46 +8,35 @@ const SIGN_UP_URL = 'http://localhost:3000/api/v1/users/create';
 const SIGN_IN_URL = 'http://localhost:3000/api/v1/users/login';
 
 export interface AuthResponseData {
-  kind: string;
-  idToken: string;
-  email: string;
-  refreshToken: string;
-  expiresIn: string;
-  localId: string;
-  registered?: boolean;
+  success: boolean;
+  payload: {
+    user: {
+      id: number;
+      email: string;
+      first_name: string;
+      last_name: string;
+      name: string;
+      token: {
+        id: number;
+        created_at: string;
+        expiry: string;
+        ip: string;
+        revocation_date: string;
+        updated_at: string;
+        user_id: number;
+        value: string;
+      }
+    }
+  }
 }
-// Maybe try replacing the AuthResponseData interface above with these two? -- Wade
-// export interface AuthResponseData {
-//   success: boolean;
-//   payload: {
-//     user: {
-//       id: number;
-//       email: string;
-//       first_name: string;
-//       last_name: string;
-//       name: string;
-//       token: {
-//         id: number;
-//         created_at: string;
-//         expiry: string;
-//         ip: string;
-//         revocation_date: string;
-//         updated_at: string;
-//         user_id: number;
-//         value: string;
-//       };
-//     };
-//   };
-// }
 
-// export interface UserData {
-//   email: string;
-//   id: number;
-//   firstName: string;
-//   lastName: string;
-//   _token: string;
-//   _tokenExpirationDate: string;
-// }
+export interface UserData {
+  id: number;
+  email: string;
+  name: string;
+  _token: string;
+  _tokenExpirationDate: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -55,6 +44,7 @@ export interface AuthResponseData {
 export class AuthService {
   currentUser = new BehaviorSubject<User | null >(null)
   userToken = null;
+  private tokenExpTimer: any;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -64,9 +54,9 @@ export class AuthService {
       password,
       returnSecureToken: true,
     }).pipe(tap(res => {
-      const { email, localId, idToken, expiresIn } = res;
+      const { payload } = res;
 
-      this.handleAuth(email, localId, idToken, +expiresIn)
+      this.handleAuth(payload.user.email, payload.user.id, payload.user.token.value, +payload.user.token.expiry)
     }));
   }
 
@@ -74,25 +64,57 @@ export class AuthService {
     return this.http.post<AuthResponseData>(SIGN_IN_URL, {
       email, password, returnSecureToken: true,
     }).pipe(tap(res => {
-      const { email, localId, idToken, expiresIn } = res;
-
-      this.handleAuth(email, localId, idToken, +expiresIn)
+      const { payload } = res;
+      let expiresAt = new Date(payload.user.token.expiry).getTime();
+        let now = new Date(payload.user.token.created_at).getTime();
+        let expiresIn = +expiresAt - +now;
+      this.handleAuth(payload.user.email, payload.user.id, payload.user.token.value, expiresIn)
     }))
   }
 
-  handleAuth(email: string, userId: string, token: string, expiresIn: number) {
+  handleAuth(email: string, id: number, token: string, expiresIn: number) {
     const expDate = new Date(new Date().getTime() + expiresIn * 1000);
 
-    const formUser = new User(email, userId, token, expDate);
+    const formUser = new User(email, id, token, expDate);
     this.currentUser.next(formUser);
 
     localStorage.setItem("userData", JSON.stringify(formUser));
+
+    this.automaticSignOut(expiresIn * 1000)
   }
 
   signOut() {
     this.currentUser.next(null);
-    this.router.navigate(['auth']);
+
+    localStorage.removeItem('userData');
+
+    if (this.tokenExpTimer) clearTimeout(this.tokenExpTimer);
+
+    this.router.navigate(["auth"]);
   }
+
+  automaticSignIn() {
+    const userData: UserData = JSON.parse(localStorage.getItem('userData')!);
+
+    if (!userData) return;
+    const { email, id, _token, _tokenExpirationDate } = userData;
+
+    const loadedUser = new User(email, id, _token, new Date(_tokenExpirationDate));
+
+    if (loadedUser.token) {
+      this.currentUser.next(loadedUser);
+    }
+  }
+
+  automaticSignOut(expDuration: number) {
+    expDuration = 1800000
+    console.log("Expiration Duration:", expDuration)
+
+    this.tokenExpTimer = setTimeout(() => {
+      this.signOut();
+    }, expDuration);
+  }
+
 }
 
 // Watch "Me and Authentication" video and see if I need to do anything else with Auth
